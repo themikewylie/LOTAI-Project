@@ -1,97 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LOTAI Project</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOTAI - Living Off Trusted AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      background: #f9f9f9;
+      margin: 0;
       color: #333;
     }
     header {
-      background-color: #222;
+      background: #111;
       color: #fff;
       padding: 20px;
       text-align: center;
     }
-    h1 {
+    header h1 {
       margin: 0;
+      font-size: 2em;
     }
-    .container {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-    .intro {
+    .search-bar {
       text-align: center;
-      margin-bottom: 40px;
+      margin: 20px;
     }
-    .tool-card {
-      background: white;
+    .search-bar input {
+      width: 60%;
+      padding: 10px;
+      font-size: 1em;
+    }
+    .tool-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       padding: 20px;
-      margin-bottom: 20px;
-      border-left: 5px solid #0077cc;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .tool-card h2 {
+    .tool {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      padding: 20px;
+      width: 300px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .tool h3 {
       margin-top: 0;
     }
-    .tag {
-      background: #0077cc;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      margin-left: 5px;
+    .tags {
+      margin-top: 10px;
     }
-    footer {
+    .tag {
+      display: inline-block;
+      background: #eee;
+      color: #555;
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 3px;
+      font-size: 0.8em;
+    }
+    .footer {
       text-align: center;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #666;
+      background: #111;
+      color: white;
+      padding: 15px;
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>LOTAI Project</h1>
+    <p>Living Off Trusted AI - Risk Awareness for AI Tools</p>
+  </header>
 
-<header>
-  <h1>LOTAI Project</h1>
-  <p>Living Off The AI: A Collection of AI Tools and Their Abuse by Threat Actors</p>
-</header>
-
-<div class="container">
-  <div class="intro">
-    <p>The LOTAI Project tracks how AI tools are exploited by cybercriminals and threat actors. This site aims to inform researchers, defenders, and policymakers.</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search AI tools or tags...">
   </div>
 
-  <div class="tool-card">
-    <h2>ChatGPT <span class="tag">LLM</span></h2>
-    <p>Used to draft convincing phishing emails, generate malware code, and simulate social engineering conversations.</p>
-    <a href="#">Read more →</a>
+  <div class="tool-list" id="toolList">Loading tools...</div>
+
+  <div class="footer">
+    <p>&copy; LOTAI Project | <a style="color: #ccc;" href="https://github.com/YourGitHubOrg/lotai" target="_blank">View on GitHub</a></p>
   </div>
 
-  <div class="tool-card">
-    <h2>DeepFaceLab <span class="tag">Deepfake</span></h2>
-    <p>Abused for impersonation in social engineering attacks, especially in executive impersonation or business email compromise (BEC).</p>
-    <a href="#">Read more →</a>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script>
+    async function loadYAMLTools() {
+      try {
+        const response = await fetch('tools.yaml');
+        const text = await response.text();
+        const tools = jsyaml.load(text);
 
-  <div class="tool-card">
-    <h2>ElevenLabs <span class="tag">Voice Clone</span></h2>
-    <p>Used to create cloned voice audio to bypass voice authentication or impersonate individuals in scams.</p>
-    <a href="#">Read more →</a>
-  </div>
+        window.allTools = tools;
+        renderTools(tools);
+      } catch (err) {
+        document.getElementById('toolList').innerHTML = 'Failed to load tool list.';
+        console.error(err);
+      }
+    }
 
-  <!-- Add more tool-cards below as needed -->
+    function renderTools(tools) {
+      const container = document.getElementById('toolList');
+      container.innerHTML = '';
 
-</div>
+      tools.forEach(tool => {
+        const div = document.createElement('div');
+        div.className = 'tool';
+        div.innerHTML = `
+          <h3>${tool.name}</h3>
+          <p><strong>Vendor:</strong> ${tool.vendor}</p>
+          <p><strong>Category:</strong> ${tool.category}</p>
+          <p><strong>Risk:</strong> ${tool.risk}</p>
+          <div class="tags">
+            ${(tool.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(' ')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-<footer>
-  &copy; 2025 LOTAI Project. All rights reserved.
-</footer>
+    document.getElementById('searchInput').addEventListener('input', function() {
+      const value = this.value.toLowerCase();
+      const filtered = window.allTools.filter(tool =>
+        tool.name.toLowerCase().includes(value) ||
+        (tool.tags || []).some(tag => tag.toLowerCase().includes(value))
+      );
+      renderTools(filtered);
+    });
 
+    loadYAMLTools();
+  </script>
 </body>
 </html>
